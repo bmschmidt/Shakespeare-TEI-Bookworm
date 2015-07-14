@@ -3,3 +3,5 @@ TEIfiles
 *.zip
 *.txt
 TEIworm
+.DS_Store
+*.pyc
