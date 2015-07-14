@@ -1,14 +1,8 @@
-
-
-
-
 input.txt: TEIfiles
-	python TEIparser.py
+	python TEIparser.py TEIfiles/Folger_Digital_Texts_Complete/*.xml
 
 #it just gets built at the same time.
 jsoncatalog.txt: input.txt
-
-
 
 TEIfiles:
 	wget -nc http://www.folgerdigitaltexts.org/zip/Folger_Digital_Texts_Complete.zip
@@ -28,14 +22,12 @@ TEIworm/bookworm.cnf:
 TEIworm/files/texts/field_descriptions.json: TEIworm TEIworm/files/metadata/jsoncatalog.txt TEIworm/bookworm.cnf
 	cd TEIworm; python OneClick.py guessAtFieldDescriptions
 
-TEIworm/files/texts/input.txt: TEIworm input.txt
-	mkdir -p $(dir $@)
-	ln -fs ../../../input.txt $@
-
-TEIworm/files/metadata/jsoncatalog.txt: TEIworm jsoncatalog.txt
-	mkdir -p $(dir $@)
-	ln -fs ../../../jsoncatalog.txt $@
-
 clean:
 	rm -f TEIworm/files/metadata/* TEIworm/files/texts/input.txt input.txt jsoncatalog.txt bookworm
 	cd TEIworm; make pristine;
+
+again: clean TEIfiles
+	python TEIparser.py TEIfiles/Folger_Digital_Texts_Complete/*.xml
+	make TEIworm/bookworm.cnf;
+	cd TEIworm; make;
+	cd TEIworm; python OneClick.py supplementMetadataFromJSON ../sp_who_json.txt sp_who
