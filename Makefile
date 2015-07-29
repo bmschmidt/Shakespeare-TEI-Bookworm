@@ -1,31 +1,24 @@
-all: input.txt TEIworm/bookworm.cnf
-	cd TEIworm; make;
-	cd TEIworm; python OneClick.py supplementMetadataFromJSON ../sp_who_json.txt sp_who
+all: input.txt .bookworm
+	bookworm build all
+	bookworm --supplement_metadata --format tsv --file=sp_who_json.txt --key=sp_who
+
+#it just gets built at the same time.
 
 input.txt: TEIfiles
 	python TEIparser.py TEIfiles/Folger_Digital_Texts_Complete/*.xml
-
-#it just gets built at the same time.
 jsoncatalog.txt: input.txt
+
+#field_descriptions.json is build by hand.
 
 TEIfiles:
 	wget -nc http://www.folgerdigitaltexts.org/zip/Folger_Digital_Texts_Complete.zip
 	mkdir $@
 	unzip Folger_Digital_Texts_Complete.zip -d $@
 
-TEIworm:
-	git clone http://github.com/bmschmidt/Presidio $@
+.bookworm:
+	bookworm init
 
-bookworm: TEIworm/files/texts/input.txt TEIworm/files/metadata/jsoncatalog.txt TEIworm/files/texts/field_descriptions.json
-	cd TEIworm; make
-	touch $@
+pristine: .bookworm
+	bookworm build pristine
 
-TEIworm/bookworm.cnf: TEIworm
-	cd TEIworm; make bookworm.cnf
 
-TEIworm/files/texts/field_descriptions.json: TEIworm TEIworm/files/metadata/jsoncatalog.txt TEIworm/bookworm.cnf
-	cd TEIworm; python OneClick.py guessAtFieldDescriptions
-
-clean:
-	rm -f TEIworm/files/metadata/* TEIworm/files/texts/input.txt input.txt jsoncatalog.txt bookworm
-	cd TEIworm; make pristine;
